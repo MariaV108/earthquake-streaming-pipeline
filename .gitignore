@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Виртуальное окружение
+venv/
+.venv/
+env/
+
+# Секреты и переменные окружения
+.env
+*.key
+credentials.json
+
+# IDE
+.idea/
+.vscode/
+
+# Прочее
+.DS_Store
