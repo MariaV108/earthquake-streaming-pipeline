@@ -52,14 +52,14 @@ while True:
                     INSERT INTO earthquakes (
                 event_id, magnitude, place, event_time,
                 longitude, latitude, depth, tsunami,
-                significance, event_type
+                significance, event_type, alert_level
             )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (event_id) DO NOTHING
                     """, (
                         quake["event_id"], quake["magnitude"], quake["place"], quake["event_time"],
                         quake["longitude"], quake["latitude"], quake["depth"], quake["tsunami"],
-                        quake["significance"], quake["event_type"]
+                        quake["significance"], quake["event_type"], quake["alert_level"]
                         ))
     except psycopg2.OperationalError as e:
         print(f"⚠️  Потеряно соединение с Postgres: {e}. Переподключаюсь...")
