@@ -1,5 +1,6 @@
 import os
 import requests
+import psycopg2
 from datetime import datetime, timedelta, timezone
 import time
 import json
@@ -12,6 +13,41 @@ TOPIC = "earthquakes"
 producer = Producer({"bootstrap.servers": KAFKA_BROKER})
 
 url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+
+
+def connect_postgress():
+    conn = psycopg2.connect(
+        host=os.getenv("PG_HOST", "localhost"),
+        port=os.getenv("PG_PORT", "5432"),
+        dbname=os.getenv("PG_DB", "earthquakes"),
+        user=os.getenv("PG_USER", "postgres"),
+        password=os.getenv("PG_PASSWORD", "postgres")
+    )
+    conn.autocommit = True
+    return conn
+
+pg_conn = connect_postgress()
+pg_cur = pg_conn.cursor()
+
+
+def read_checkpoint():
+    pg_cur.execute("SELECT last_time FROM producer_checkpoint WHERE id = 1")
+    row = pg_cur.fetchone()
+    if row is not None:
+        print(f"Checkpoint found, continuing with {row[0]}")
+        return row[0]
+    else:
+        print("There’s no checkpoint, starting from the last hour")
+        return datetime.now(timezone.utc) - timedelta(hours=1)
+
+
+
+def write_checkpoint(moment):
+    pg_cur.execute("""
+        INSERT INTO producer_checkpoint (id, last_time)
+        VALUES(1, %s)
+        ON CONFLICT (id) DO UPDATE SET last_time = EXCLUDED.last_time
+    """, (moment,))
 
 def get_earthquakes(start_time):
 
@@ -42,16 +78,17 @@ def get_earthquakes(start_time):
 
     return raw_data
 
-last_time = datetime.now(timezone.utc) - timedelta(hours=1)
+last_time = read_checkpoint()
 
 while True:
     quakes = get_earthquakes(last_time)
     for quake in quakes:
         producer.produce(topic=TOPIC, value=json.dumps(quake, default=str))
     producer.flush()
-    print(f"[{datetime.now(timezone.utc):%H:%M:%S}] отправлено {len(quakes)} событий")
-
 
     last_time = datetime.now(timezone.utc)
+    write_checkpoint(last_time)
+    print(f"[{datetime.now(timezone.utc):%H:%M:%S}] {len(quakes)} events sent")
+
     time.sleep(60)
 

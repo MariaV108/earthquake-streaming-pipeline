@@ -28,14 +28,14 @@ consumer = Consumer({
     "auto.offset.reset": "earliest",
 })
 consumer.subscribe([TOPIC])
-print("Consumer запущен, ждём сообщения...")
+print("Consumer has been launched, waiting for a message...")
 
 while True:
     msg = consumer.poll(1.0)
     if msg is None:
         continue
     if msg.error():
-        print("Ошибка Kafka:", msg.error())
+        print("Error Kafka:", msg.error())
         continue
 
     quake = json.loads(msg.value())
@@ -62,7 +62,7 @@ while True:
                         quake["significance"], quake["event_type"], quake["alert_level"]
                         ))
     except psycopg2.OperationalError as e:
-        print(f"⚠️  Потеряно соединение с Postgres: {e}. Переподключаюсь...")
+        print(f"⚠️  Connection to Postgres lost: {e}. Reconnecting...")
         time.sleep(5)
         conn = connect_postgress()
         cur = conn.cursor()
@@ -71,4 +71,4 @@ while True:
     if quake["alert_level"] in ("RED", "ORANGE"):
         print(f"🚨 [{quake['alert_level']}] M{quake['magnitude']} — {quake['place']}")
     else:
-        print(f"   сохранено: M{quake['magnitude']} — {quake['place']}")
+        print(f"   saved: M{quake['magnitude']} — {quake['place']}")
