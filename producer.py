@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import time
 import json
 from confluent_kafka import Producer
+from db import connect_postgres
 
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
@@ -14,19 +15,7 @@ producer = Producer({"bootstrap.servers": KAFKA_BROKER})
 
 url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
-
-def connect_postgress():
-    conn = psycopg2.connect(
-        host=os.getenv("PG_HOST", "localhost"),
-        port=os.getenv("PG_PORT", "5432"),
-        dbname=os.getenv("PG_DB", "earthquakes"),
-        user=os.getenv("PG_USER", "postgres"),
-        password=os.getenv("PG_PASSWORD", "postgres")
-    )
-    conn.autocommit = True
-    return conn
-
-pg_conn = connect_postgress()
+pg_conn = connect_postgres()
 pg_cur = pg_conn.cursor()
 
 

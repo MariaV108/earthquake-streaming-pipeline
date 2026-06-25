@@ -3,23 +3,13 @@ import json
 import time
 import psycopg2
 from confluent_kafka import Consumer
+from db import connect_postgres
 
 
 KAFKA_BROKER = os.getenv("KAFKA_BROKER", "localhost:9092")
 TOPIC = "earthquakes"
 
-def connect_postgress():
-    conn = psycopg2.connect(
-        host=os.getenv("PG_HOST", "localhost"),
-        port=os.getenv("PG_PORT", "5432"),
-        dbname=os.getenv("PG_DB", "earthquakes"),
-        user=os.getenv("PG_USER", "postgres"),
-        password=os.getenv("PG_PASSWORD", "postgres")
-    )
-    conn.autocommit = True
-    return conn
-
-conn = connect_postgress()
+conn = connect_postgres()
 cur = conn.cursor()
 
 consumer = Consumer({
