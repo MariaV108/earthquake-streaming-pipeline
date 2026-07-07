@@ -54,7 +54,7 @@ while True:
     except psycopg2.OperationalError as e:
         print(f"⚠️  Connection to Postgres lost: {e}. Reconnecting...")
         time.sleep(5)
-        conn = connect_postgress()
+        conn = connect_postgres()
         cur = conn.cursor()
         continue
 
