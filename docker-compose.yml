@@ -44,8 +44,10 @@ services:
       context: .
       dockerfile: Dockerfile.producer
     depends_on:
-      - kafka
-      - postgres
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_started
     environment:
       KAFKA_BROKER: kafka:29092
       PG_HOST: postgres
