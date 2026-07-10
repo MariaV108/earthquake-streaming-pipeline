@@ -1,6 +1,5 @@
 import os
 import requests
-import psycopg2
 from datetime import datetime, timedelta, timezone
 import time
 import json
